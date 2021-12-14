@@ -150,22 +150,27 @@ class _HomeState extends State<Home> {
   bool showColorSelector = false;
   AnchorColor strokeAnchorColor = AnchorColor.red;
   AnchorColor fillAnchorColor = AnchorColor.red;
-  int strokeAnchorColorValue = 0;
+  int strokeAnchorColorValue = 64;
   int fillAnchorColorValue = 0;
-  int strokeAlphaValue = 255;
-  int fillAlphaValue = 255;
-  int redInt = 0;
-  int greenInt = 0;
-  int blueInt = 0;
-  int alphaInt = 255;
-  Offset colorPickerCursor = const Size(256, 256).center(Offset.zero);
+  late Timer colorChangeTimer;
+  int strokeRedInt = 64;
+  int strokeGreenInt = 96;
+  int strokeBlueInt = 255;
+  int strokeAlphaInt = 255;
+  int fillRedInt = 64;
+  int fillGreenInt = 96;
+  int fillBlueInt = 255;
+  int fillAlphaInt = 255;
+  Offset strokeColorPickerCursor = const Offset(255, 96);
+  Offset fillColorPickerCursor = const Offset(255, 96);
   Offset? gradientPointer;
   Color gradientColor = const Color.fromARGB(255, 64, 96, 255);
-  Color pendingColor = const Color.fromARGB(255, 64, 96, 255);
-  String colorReceiver = "";
-  TextEditingController? redController;
-  TextEditingController? greenController;
-  TextEditingController? blueController;
+  Color strokePendingColor = const Color.fromARGB(255, 64, 96, 255);
+  Color fillPendingColor = const Color.fromARGB(255, 64, 96, 255);
+  double strokeColorTabTopPosition = 50;
+  double strokeColorTabRightPosition = 330;
+  double fillColorTabTopPosition = 463;
+  double fillColorTabRightPosition = 330;
   Paint currentStrokeColor = Paint()
     ..color = const Color.fromARGB(255, 64, 96, 255)
     ..strokeWidth = 2.0
@@ -582,11 +587,7 @@ class _HomeState extends State<Home> {
       if(showColorSelector){
         gradientPointer = const Offset(107.5, 150);
         gradientColor = currentStrokeColor.color;
-        pendingColor = currentStrokeColor.color;
-        redController = TextEditingController(text:"${currentStrokeColor.color.red}");
-        greenController = TextEditingController(text:"${currentStrokeColor.color.green}");
-        blueController = TextEditingController(text:"${currentStrokeColor.color.blue}");
-        colorReceiver = "stroke";
+        strokePendingColor = currentStrokeColor.color;
       }
     });
   }
@@ -597,11 +598,7 @@ class _HomeState extends State<Home> {
       if(showColorSelector){
         gradientPointer = const Offset(107.5, 150);
         gradientColor = currentFillColor.color;
-        pendingColor = currentFillColor.color;
-        redController = TextEditingController(text:"${currentFillColor.color.red}");
-        greenController = TextEditingController(text:"${currentFillColor.color.green}");
-        blueController = TextEditingController(text:"${currentFillColor.color.blue}");
-        colorReceiver = "fill";
+        strokePendingColor = currentFillColor.color;
       }
     });
   }
@@ -914,6 +911,366 @@ class _HomeState extends State<Home> {
     }
     webIO = WebIO(currentUser);
     webIO.updateUserCredential(userCredential);
+  }
+
+  void changeRed(bool increment, String colorReceiver){
+    if(increment){
+      if(colorReceiver == "Stroke" && strokeRedInt <= 252){
+        setState((){
+          strokeRedInt += 3;
+          if(strokeAnchorColor == AnchorColor.red){
+            strokeAnchorColorValue = strokeRedInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if (colorReceiver == "Stroke" && strokeRedInt < 255){
+        setState((){
+          strokeRedInt = 255;
+          if(strokeAnchorColor == AnchorColor.red){
+            strokeAnchorColorValue = strokeRedInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if(colorReceiver == "Fill" && fillRedInt <= 252){
+        setState((){
+          fillRedInt += 3;
+          if(fillAnchorColor == AnchorColor.red){
+            fillAnchorColorValue = fillRedInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      } else if (colorReceiver == "Fill" && fillRedInt < 255){
+        setState((){
+          fillRedInt = 255;
+          if(fillAnchorColor == AnchorColor.red){
+            fillAnchorColorValue = fillRedInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      }
+    } else {
+      if(colorReceiver == "Stroke" && strokeRedInt >= 3){
+        setState((){
+          strokeRedInt -= 3;
+          if(strokeAnchorColor == AnchorColor.red){
+            strokeAnchorColorValue = strokeRedInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if (colorReceiver == "Stroke" && strokeRedInt > 0){
+        setState((){
+          strokeRedInt = 0;
+          if(strokeAnchorColor == AnchorColor.red){
+            strokeAnchorColorValue = strokeRedInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if(colorReceiver == "Fill" && fillRedInt >= 3){
+        setState((){
+          fillRedInt -= 3;
+          if(fillAnchorColor == AnchorColor.red){
+            fillAnchorColorValue = fillRedInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      } else if (colorReceiver == "Fill" && fillRedInt > 0){
+        setState((){
+          fillRedInt = 0;
+          if(fillAnchorColor == AnchorColor.red){
+            fillAnchorColorValue = fillRedInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      }
+    }
+    moveColorPickerCursor(colorReceiver);
+  }
+
+  void changeGreen(bool increment, String colorReceiver){
+    if(increment){
+      if(colorReceiver == "Stroke" && strokeGreenInt <= 252){
+        setState((){
+          strokeGreenInt += 3;
+          if(strokeAnchorColor == AnchorColor.green){
+            strokeAnchorColorValue = strokeGreenInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if (colorReceiver == "Stroke" && strokeGreenInt < 255){
+        setState((){
+          strokeGreenInt = 255;
+          if(strokeAnchorColor == AnchorColor.green){
+            strokeAnchorColorValue = strokeGreenInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if(colorReceiver == "Fill" && fillGreenInt <= 252){
+        setState((){
+          fillGreenInt += 3;
+          if(fillAnchorColor == AnchorColor.green){
+            fillAnchorColorValue = fillGreenInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      } else if (colorReceiver == "Fill" && fillGreenInt < 255){
+        setState((){
+          fillGreenInt = 255;
+          if(fillAnchorColor == AnchorColor.green){
+            fillAnchorColorValue = fillGreenInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      }
+    } else {
+      if(colorReceiver == "Stroke" && strokeGreenInt >= 3){
+        setState((){
+          strokeGreenInt -= 3;
+          if(strokeAnchorColor == AnchorColor.green){
+            strokeAnchorColorValue = strokeGreenInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if (colorReceiver == "Stroke" && strokeGreenInt > 0){
+        setState((){
+          strokeGreenInt = 0;
+          if(strokeAnchorColor == AnchorColor.green){
+            strokeAnchorColorValue = strokeGreenInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if(colorReceiver == "Fill" && fillGreenInt >= 3){
+        setState((){
+          fillGreenInt -= 3;
+          if(fillAnchorColor == AnchorColor.green){
+            fillAnchorColorValue = fillGreenInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      } else if (colorReceiver == "Fill" && fillGreenInt > 0){
+        setState((){
+          fillGreenInt = 0;
+          if(fillAnchorColor == AnchorColor.green){
+            fillAnchorColorValue = fillGreenInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      }
+    }
+    moveColorPickerCursor(colorReceiver);
+  }
+
+  void changeBlue(bool increment, String colorReceiver){
+    if(increment){
+      if(colorReceiver == "Stroke" && strokeBlueInt <= 252){
+        setState((){
+          strokeBlueInt += 3;
+          if(strokeAnchorColor == AnchorColor.blue){
+            strokeAnchorColorValue = strokeBlueInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if (colorReceiver == "Stroke" && strokeBlueInt < 255){
+        setState((){
+          strokeBlueInt = 255;
+          if(strokeAnchorColor == AnchorColor.blue){
+            strokeAnchorColorValue = strokeBlueInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if(colorReceiver == "Fill" && fillBlueInt <= 252){
+        setState((){
+          fillBlueInt += 3;
+          if(fillAnchorColor == AnchorColor.blue){
+            fillAnchorColorValue = fillBlueInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      } else if (colorReceiver == "Fill" && fillBlueInt < 255){
+        setState((){
+          fillBlueInt = 255;
+          if(fillAnchorColor == AnchorColor.blue){
+            fillAnchorColorValue = fillBlueInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      }
+    } else {
+      if(colorReceiver == "Stroke" && strokeBlueInt >= 3){
+        setState((){
+          strokeBlueInt -= 3;
+          if(strokeAnchorColor == AnchorColor.blue){
+            strokeAnchorColorValue = strokeBlueInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if (colorReceiver == "Stroke" && strokeBlueInt > 0){
+        setState((){
+          strokeBlueInt = 0;
+          if(strokeAnchorColor == AnchorColor.blue){
+            strokeAnchorColorValue = strokeBlueInt;
+          }
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if(colorReceiver == "Fill" && fillBlueInt >= 3){
+        setState((){
+          fillBlueInt -= 3;
+          if(fillAnchorColor == AnchorColor.blue){
+            fillAnchorColorValue = fillBlueInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      } else if (colorReceiver == "Fill" && fillBlueInt > 0){
+        setState((){
+          fillBlueInt = 0;
+          if(fillAnchorColor == AnchorColor.blue){
+            fillAnchorColorValue = fillBlueInt;
+          }
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      }
+    }
+    moveColorPickerCursor(colorReceiver);
+  }
+
+  void changeAlpha(bool increment, String colorReceiver){
+    if(increment){
+      if(colorReceiver == "Stroke" && strokeAlphaInt <= 252){
+        setState((){
+          strokeAlphaInt += 3;
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if (colorReceiver == "Stroke" && strokeAlphaInt < 255){
+        setState((){
+          strokeAlphaInt = 255;
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if(colorReceiver == "Fill" && fillAlphaInt <= 252){
+        setState((){
+          fillAlphaInt += 3;
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      } else if (colorReceiver == "Fill" && fillAlphaInt < 255){
+        setState((){
+          fillAlphaInt = 255;
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      }
+    } else {
+      if(colorReceiver == "Stroke" && strokeAlphaInt >= 3){
+        setState((){
+          strokeAlphaInt -= 3;
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if (colorReceiver == "Stroke" && strokeAlphaInt > 0){
+        setState((){
+          strokeAlphaInt = 0;
+          strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+        });
+      } else if(colorReceiver == "Fill" && fillAlphaInt >= 3){
+        setState((){
+          fillAlphaInt -= 3;
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      } else if (colorReceiver == "Fill" && fillAlphaInt > 0){
+        setState((){
+          fillAlphaInt = 0;
+          fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+        });
+      }
+    }
+  }
+
+  Future<void> startChangeColorValues(AnchorColor anchorColor, bool increment, String colorReceiver) async {
+    switch(anchorColor){
+      case AnchorColor.red:
+        colorChangeTimer = Timer.periodic(
+            const Duration(milliseconds: 30),
+                (_timer){
+                  changeRed(increment, colorReceiver);
+                });
+        break;
+      case AnchorColor.green:
+        colorChangeTimer = Timer.periodic(
+            const Duration(milliseconds: 30),
+                (_timer){
+                changeGreen(increment, colorReceiver);
+            });
+        break;
+      case AnchorColor.blue:
+        colorChangeTimer = Timer.periodic(
+            const Duration(milliseconds: 30),
+                (_timer){
+                changeBlue(increment, colorReceiver);
+            });
+        break;
+      case AnchorColor.alpha:
+        colorChangeTimer = Timer.periodic(
+            const Duration(milliseconds: 30),
+                (_timer){
+              changeAlpha(increment, colorReceiver);
+            });
+        break;
+      default:
+        break;
+    }
+  }
+
+  void moveColorPickerCursor(String colorReceiver, {TapDownDetails? tapDownDetails, DragUpdateDetails? dragDetails}){
+    if(colorReceiver == "Stroke" && tapDownDetails != null){
+      setState((){
+        strokeColorPickerCursor = tapDownDetails.localPosition;
+      });
+    } else if (colorReceiver == "Stroke" && dragDetails != null ){
+      setState((){
+        strokeColorPickerCursor = dragDetails.localPosition;
+      });
+    } else if(colorReceiver == "Fill" && tapDownDetails != null){
+      setState((){
+        fillColorPickerCursor = tapDownDetails.localPosition;
+      });
+    } else if (colorReceiver == "Fill" && dragDetails != null ){
+      setState((){
+        fillColorPickerCursor = dragDetails.localPosition;
+      });
+    } else {
+      switch(colorReceiver == "Stroke" ? strokeAnchorColor : fillAnchorColor){
+        case AnchorColor.red:
+          if(colorReceiver == "Stroke"){
+            setState((){
+              strokeColorPickerCursor = Offset(strokeBlueInt / 1, strokeGreenInt / 1);
+            });
+          } else if (colorReceiver == "Fill"){
+            setState((){
+              fillColorPickerCursor = Offset(strokeBlueInt / 1, strokeGreenInt / 1);
+            });
+          }
+          break;
+        case AnchorColor.green:
+          if(colorReceiver == "Stroke"){
+            setState((){
+              strokeColorPickerCursor = Offset(strokeBlueInt / 1, strokeRedInt / 1);
+            });
+          } else if (colorReceiver == "Fill"){
+            setState((){
+              fillColorPickerCursor = Offset(strokeBlueInt / 1, strokeRedInt / 1);
+            });
+          }
+          break;
+        case AnchorColor.blue:
+          if(colorReceiver == "Stroke"){
+            setState((){
+              strokeColorPickerCursor = Offset(strokeGreenInt / 1, strokeRedInt / 1);
+            });
+          } else if (colorReceiver == "Fill"){
+            setState((){
+              fillColorPickerCursor = Offset(strokeGreenInt / 1, strokeRedInt / 1);
+            });
+          }
+          break;
+        default:
+          break;
+      }
+    }
   }
 
   @override
@@ -1451,8 +1808,6 @@ class _HomeState extends State<Home> {
                                   widget: const FreeDrawIcon(widthSize: 28),
                                   toolTipMessage: "Free Draw"
                               ),
-                              getSideBarButton(pickColor, Icons.format_paint, toolTipMessage: "Set Stroke Colour"),
-                              getSideBarButton(pickFillColor, Icons.format_paint, toolTipMessage: "Set Fill Colour", iconWidget: const FillIcon(widthSize: 28,)),
                               getSideBarButton(pickStrokeWidth, Icons.line_weight, toolTipMessage: "Set Stroke Width"),
                               getSideBarButton(actionStack.isNotEmpty ? undoLastAction : null, Icons.undo, toolTipMessage: "Undo Last Action"),
                               getSideBarButton(
@@ -1677,6 +2032,16 @@ class _HomeState extends State<Home> {
                                   ),
                                 ),
                               ),
+                              Positioned(
+                                top: strokeColorTabTopPosition,
+                                right: strokeColorTabRightPosition,
+                                child: colorTab(paletteRect, "Stroke"),
+                              ),
+                              Positioned(
+                                top: fillColorTabTopPosition,
+                                right: fillColorTabRightPosition,
+                                child: colorTab(paletteRect, "Fill"),
+                              ),
                               if(showPathsPanel)
                                 Positioned(
                                   top:0,
@@ -1771,321 +2136,7 @@ class _HomeState extends State<Home> {
                                     ),
                                   ),
                                 ),
-                              if(showColorSelector)
-                                Positioned(
-                                  top: 0,
-                                  left: 10,
-                                  child: Material(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(9.0),
-                                    ),
-                                    elevation: 10.0,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 5.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 3.0),
-                                            child: Text("Stroke anchor color",style: const TextStyle(fontSize:16, ), textAlign: TextAlign.left,)
-                                          ),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              Radio(value: AnchorColor.red, groupValue: strokeAnchorColor, onChanged: (AnchorColor? val){
-                                                setState((){
-                                                  strokeAnchorColor = val ?? strokeAnchorColor;
-                                                  strokeAnchorColorValue = strokeAnchorColor == AnchorColor.red ? redInt : (strokeAnchorColor == AnchorColor.green ? greenInt : blueInt);
-                                                });
-                                              }),
-                                              const Text("Red"),
-                                              Radio(value: AnchorColor.green, groupValue: strokeAnchorColor, onChanged: (AnchorColor? val){
-                                                setState((){
-                                                  strokeAnchorColor = val ?? strokeAnchorColor;
-                                                  strokeAnchorColorValue = strokeAnchorColor == AnchorColor.red ? redInt : (strokeAnchorColor == AnchorColor.green ? greenInt : blueInt);
-                                                });
-                                              }),
-                                              const Text("Green"),
-                                              Radio(value: AnchorColor.blue, groupValue: strokeAnchorColor, onChanged: (AnchorColor? val){
-                                                setState((){
-                                                  strokeAnchorColor = val ?? strokeAnchorColor;
-                                                  strokeAnchorColorValue = strokeAnchorColor == AnchorColor.red ? redInt : (strokeAnchorColor == AnchorColor.green ? greenInt : blueInt);
-                                                });
-                                              }),
-                                              const Text("Blue"),
-                                            ],
-                                          ),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(vertical: 3.0),
-                                                width: 268,
-                                                height: 260,
-                                                child: GestureDetector(
-                                                  onPanUpdate: (dt){
-                                                    if(paletteRect.contains(dt.localPosition)){
-                                                      print("Local position: ${dt.localPosition}");
-                                                      int red, green, blue;
-                                                      switch (strokeAnchorColor) {
-                                                        case AnchorColor.red:
-                                                          red = redInt;
-                                                          green = (dt.localPosition.dx - 1) ~/ 1;
-                                                          blue = (dt.localPosition.dy - 1) ~/ 1;
-                                                          break;
-                                                        case AnchorColor.green:
-                                                          green = greenInt;
-                                                          red = (dt.localPosition.dx - 1) ~/ 1;
-                                                          blue = (dt.localPosition.dy - 1) ~/ 1;
-                                                          break;
-                                                        case AnchorColor.blue:
-                                                          blue = blueInt;
-                                                          red = (dt.localPosition.dx - 1) ~/ 1;
-                                                          green = (dt.localPosition.dy - 1) ~/ 1;
-                                                          break;
-                                                        default:
-                                                          red = redInt;
-                                                          green = greenInt;
-                                                          blue = blueInt;
-                                                          break;
-                                                      }
-                                                      setState((){
-                                                        colorPickerCursor = dt.localPosition;
-                                                        redInt = red;
-                                                        greenInt = green;
-                                                        blueInt = blue;
-                                                      });
-                                                    }
-                                                  },
-                                                  child: CustomPaint(
-                                                    child: ThreeDimColorPalette(256, 256, strokeAnchorColor, strokeAnchorColorValue, strokeAlphaValue),
-                                                    foregroundPainter: FastDraw(
-                                                      drawer: (Canvas canvas, Size size){
-                                                        canvas.clipRect(Offset.zero & size);
-                                                        print("Size: $size");
-                                                        Path cursor = Path();
-                                                        cursor.addRect(Rect.fromCenter(center: colorPickerCursor - Offset(0, _controlPointSize), width: _controlPointSize / 2, height: _controlPointSize));
-                                                        cursor.addRect(Rect.fromCenter(center: colorPickerCursor + Offset(0, _controlPointSize), width: _controlPointSize / 2, height: _controlPointSize));
-                                                        cursor.addRect(Rect.fromCenter(center: colorPickerCursor - Offset(_controlPointSize, 0), width: _controlPointSize, height: _controlPointSize / 2));
-                                                        cursor.addRect(Rect.fromCenter(center: colorPickerCursor + Offset(_controlPointSize, 0), width: _controlPointSize, height: _controlPointSize / 2));
-                                                        canvas.drawPath(cursor, fillPaint);
-                                                      },
-                                                      shouldRedraw: true,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical:3.0),
-                                            width: 330,
-                                            child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      Container(
-                                                          padding: EdgeInsets.zero,
-                                                          width: 12,
-                                                          child: const Text("R")
-                                                      ),
-                                                      SizedBox(
-                                                        width: sliderWidth,
-                                                        height: 30,
-                                                        child: Slider(
-                                                          value: redInt / 1,
-                                                          onChanged:(val){
-                                                            setState((){
-                                                              redInt = val ~/ 1;
-                                                            });
-                                                          },
-                                                          min: 0.0,
-                                                          max: 255.0,
-                                                          divisions: 256,
-                                                        ),
-                                                      ),
-                                                      Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                                          width: 42,
-                                                          child: Text("$redInt",)
-                                                      ),
-                                                    ]
-                                                ),
-                                                Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      Container(
-                                                          padding: EdgeInsets.zero,
-                                                          width: 12,
-                                                          child: const Text("G")
-                                                      ),
-                                                      SizedBox(
-                                                        width: sliderWidth,
-                                                        height: 30,
-                                                        child: Slider(
-                                                          value: greenInt / 1,
-                                                          onChanged:(val){
-                                                            setState((){
-                                                              greenInt = val ~/ 1;
-                                                            });
-                                                          },
-                                                          min: 0.0,
-                                                          max: 255.0,
-                                                          divisions: 256,
-                                                        ),
-                                                      ),
-                                                      Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                                          width: 42,
-                                                          child: Text("$greenInt",)
-                                                      ),
-                                                    ]
-                                                ),
-                                                Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      Container(
-                                                          padding: EdgeInsets.zero,
-                                                          width: 12,
-                                                          child: const Text("B")
-                                                      ),
-                                                      SizedBox(
-                                                        width: sliderWidth,
-                                                        height: 30,
-                                                        child: Slider(
-                                                          value: blueInt / 1,
-                                                          onChanged:(val){
-                                                            setState((){
-                                                              blueInt = val ~/ 1;
-                                                            });
-                                                          },
-                                                          min: 0.0,
-                                                          max: 255.0,
-                                                          divisions: 256,
-                                                        ),
-                                                      ),
-                                                      Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                                          width: 42,
-                                                          child: Text("$blueInt",)
-                                                      ),
-                                                    ]
-                                                ),
-                                                Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      Container(
-                                                          padding: EdgeInsets.zero,
-                                                          width: 12,
-                                                          child: const Text("A")
-                                                      ),
-                                                      SizedBox(
-                                                        width: sliderWidth,
-                                                        height: 30,
-                                                        child: Slider(
-                                                          value: alphaInt / 1,
-                                                          onChanged:(val){
-                                                            setState((){
-                                                              alphaInt = val ~/ 1;
-                                                            });
-                                                          },
-                                                          min: 0.0,
-                                                          max: 255.0,
-                                                          divisions: 256,
-                                                        ),
-                                                      ),
-                                                      Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                                          width: 42,
-                                                          child: Text("$alphaInt",)
-                                                      ),
-                                                    ]
-                                                ),
-                                                Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 50,
-                                                      height: 50,
-                                                      child: Material(
-                                                        shape: const CircleBorder(),
-                                                        color: pendingColor
-                                                      )
-                                                    ),
-                                                    SizedBox(
-                                                      height:30,
-                                                      child: Container()
-                                                    ),
-                                                    Container(
-                                                      height: 32,
-                                                      margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                                                      child: MaterialButton(
-                                                        onPressed:(){
-                                                          if(colorReceiver == "stroke"){
-                                                            if(actionStack.isEmpty || !(actionStack.last).containsKey(DrawAction.changePaintColor)){
-                                                              actionStack.add({
-                                                                DrawAction.changePaintColor: {
-                                                                  "original_paint_color": currentStrokeColor.color,
-                                                                  "editing_curve_index": currentEditingCurveIndex,
-                                                                }
-                                                              });
-                                                              if(currentEditingCurveIndex != null){
-                                                                actionStack.last[DrawAction.changePaintColor]["original_curve_paint_color"] = pathsCollection[currentEditingCurveIndex!]["stroke"].color;
-                                                              }
-                                                            }
-                                                            setState((){
-                                                              currentStrokeColor.color = pendingColor;
-                                                              if(currentEditingCurveIndex != null){
-                                                                pathsCollection[currentEditingCurveIndex!]["stroke"].color = pendingColor;
-                                                              }
-                                                              showColorSelector = false;
-                                                              colorReceiver = "";
-                                                            });
-                                                          } else if (colorReceiver == "fill"){
-                                                            actionStack.add({
-                                                              DrawAction.changeFillColor: {
-                                                                "original_fill_color": currentFillColor.color,
-                                                                "editing_curve_index": currentEditingCurveIndex,
-                                                              }
-                                                            });
-                                                            if(currentEditingCurveIndex != null){
-                                                              actionStack.last[DrawAction.changeFillColor]["original_curve_fill_color"] = pathsCollection[currentEditingCurveIndex!]["fill"].color;
-                                                              actionStack.last[DrawAction.changeFillColor]["original_filled_attribute"] = pathsCollection[currentEditingCurveIndex!]["filled"];
-                                                            }
-                                                            setState((){
-                                                              currentFillColor.color = pendingColor;
-                                                              if(currentEditingCurveIndex != null){
-                                                                pathsCollection[currentEditingCurveIndex!]["fill"].color = pendingColor;
-                                                                pathsCollection[currentEditingCurveIndex!]["filled"] = true;
-                                                              }
-                                                              showColorSelector = false;
-                                                              colorReceiver = "";
-                                                            });
-                                                          }
-                                                        },
-                                                        color: Colors.black,
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(6.0)
-                                                        ),
-                                                        elevation: 10.0,
-                                                        padding: EdgeInsets.zero,
-                                                        child: const Text("Pick color", style: TextStyle(fontSize:16, color: Colors.white))
-                                                      )
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
-                                            )
-                                          ),
-                                      ],
-                                    ),
-                                    ),
-                                  ),
-                                ),
+
                               if(showAddCurveMenu)
                                 Positioned(
                                   top: 0,
@@ -3046,6 +3097,441 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 )
+              ]
+          )
+      ),
+    );
+  }
+
+  Widget colorTab(Rect paletteRect, String colorReceiver){
+    return Material(
+      elevation: 10.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6.0),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Container(
+          width: 268,
+          padding: EdgeInsets.zero,
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children:[
+                GestureDetector(
+                  onPanUpdate: (dt){
+                    if(colorReceiver == "Stroke"){
+                      setState((){
+                        strokeColorTabTopPosition += dt.delta.dy;
+                        strokeColorTabRightPosition -= dt.delta.dx;
+                      });
+                    } else if (colorReceiver == "Fill"){
+                      setState((){
+                        fillColorTabTopPosition += dt.delta.dy;
+                        fillColorTabRightPosition -= dt.delta.dx;
+                      });
+                    }
+                  },
+                  child: Material(
+                    color: Colors.orange,
+                    child: Container(
+                      width: 268,
+                      height: 20,
+                      constraints: const BoxConstraints(
+                          minWidth: 200
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text("$colorReceiver color", style: const TextStyle(fontSize: 16, color: Colors.white)
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 3.0),
+                      width: 262,
+                      height: 260,
+                      child: GestureDetector(
+                        onTapDown:(dt){
+                          if(paletteRect.contains(dt.localPosition)){
+                            int red, green, blue;
+                            switch (colorReceiver == "Stroke" ? strokeAnchorColor : fillAnchorColor) {
+                              case AnchorColor.red:
+                                red = colorReceiver == "Stroke" ? strokeRedInt : fillRedInt;
+                                green = (dt.localPosition.dy - 1) ~/ 1;
+                                blue = (dt.localPosition.dx - 1) ~/ 1;
+                                break;
+                              case AnchorColor.green:
+                                green = colorReceiver == "Stroke" ? strokeGreenInt : fillGreenInt;
+                                red = (dt.localPosition.dy - 1) ~/ 1;
+                                blue = (dt.localPosition.dx - 1) ~/ 1;
+                                break;
+                              case AnchorColor.blue:
+                                blue = colorReceiver == "Stroke" ? strokeBlueInt : fillBlueInt;
+                                red = (dt.localPosition.dy - 1) ~/ 1;
+                                green = (dt.localPosition.dx - 1) ~/ 1;
+                                break;
+                              default:
+                                if(colorReceiver == "Stroke"){
+                                  red = strokeRedInt;
+                                  green = strokeGreenInt;
+                                  blue = strokeBlueInt;
+                                } else {
+                                  red = fillRedInt;
+                                  green = fillGreenInt;
+                                  blue = fillBlueInt;
+                                }
+                                break;
+                            }
+                            moveColorPickerCursor(colorReceiver, tapDownDetails: dt);
+                            if(colorReceiver == "Stroke"){
+                              setState((){
+                                strokeRedInt = red;
+                                strokeGreenInt = green;
+                                strokeBlueInt = blue;
+                                strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+                              });
+                            } else if (colorReceiver == "Fill") {
+                              setState(() {
+                                fillRedInt = red;
+                                fillGreenInt = green;
+                                fillBlueInt = blue;
+                                fillPendingColor = Color.fromARGB(
+                                    fillAlphaInt, fillRedInt, fillGreenInt,
+                                    fillBlueInt);
+                              });
+                            }
+                          }
+                        },
+                        onPanUpdate: (dt){
+                          if(paletteRect.contains(dt.localPosition)){
+                            int red, green, blue;
+                            switch (colorReceiver == "Stroke" ? strokeAnchorColor : fillAnchorColor) {
+                              case AnchorColor.red:
+                                red = colorReceiver == "Stroke" ? strokeRedInt : fillRedInt;
+                                green = (dt.localPosition.dy - 1) ~/ 1;
+                                blue = (dt.localPosition.dx - 1) ~/ 1;
+                                break;
+                              case AnchorColor.green:
+                                green = colorReceiver == "Stroke" ? strokeGreenInt : fillGreenInt;
+                                red = (dt.localPosition.dy - 1) ~/ 1;
+                                blue = (dt.localPosition.dx - 1) ~/ 1;
+                                break;
+                              case AnchorColor.blue:
+                                blue = colorReceiver == "Stroke" ? strokeBlueInt : fillBlueInt;
+                                red = (dt.localPosition.dy - 1) ~/ 1;
+                                green = (dt.localPosition.dx - 1) ~/ 1;
+                                break;
+                              default:
+                                red = colorReceiver == "Stroke" ? strokeRedInt : fillRedInt;
+                                green = colorReceiver == "Stroke" ? strokeGreenInt : fillGreenInt;
+                                blue = colorReceiver == "Stroke" ? strokeBlueInt : fillBlueInt;
+                                break;
+                            }
+                            moveColorPickerCursor(colorReceiver, dragDetails: dt);
+                            if(colorReceiver == "Stroke"){
+                              setState((){
+                                strokeRedInt = red;
+                                strokeGreenInt = green;
+                                strokeBlueInt = blue;
+                                strokePendingColor = Color.fromARGB(strokeAlphaInt, strokeRedInt, strokeGreenInt, strokeBlueInt);
+                              });
+                            } else if (colorReceiver == "Fill"){
+                              setState((){
+                                fillRedInt = red;
+                                fillGreenInt = green;
+                                fillBlueInt = blue;
+                                fillPendingColor = Color.fromARGB(fillAlphaInt, fillRedInt, fillGreenInt, fillBlueInt);
+                              });
+                            }
+                          }
+                        },
+                        child: CustomPaint(
+                          child: colorReceiver == "Stroke" ? ThreeDimColorPalette(256, 256, strokeAnchorColor, strokeAnchorColorValue, 255) : ThreeDimColorPalette(256, 256, fillAnchorColor, fillAnchorColorValue, 255),
+                          foregroundPainter: FastDraw(
+                            drawer: (Canvas canvas, Size size){
+                              canvas.clipRect(Offset.zero & size);
+                              Path cursor = Path();
+                              if(colorReceiver == "Stroke"){
+                                cursor.addRect(Rect.fromCenter(center: strokeColorPickerCursor - Offset(0, _controlPointSize), width: _controlPointSize / 2, height: _controlPointSize));
+                                cursor.addRect(Rect.fromCenter(center: strokeColorPickerCursor + Offset(0, _controlPointSize), width: _controlPointSize / 2, height: _controlPointSize));
+                                cursor.addRect(Rect.fromCenter(center: strokeColorPickerCursor - Offset(_controlPointSize, 0), width: _controlPointSize, height: _controlPointSize / 2));
+                                cursor.addRect(Rect.fromCenter(center: strokeColorPickerCursor + Offset(_controlPointSize, 0), width: _controlPointSize, height: _controlPointSize / 2));
+                              } else if (colorReceiver == "Fill"){
+                                cursor.addRect(Rect.fromCenter(center: fillColorPickerCursor - Offset(0, _controlPointSize), width: _controlPointSize / 2, height: _controlPointSize));
+                                cursor.addRect(Rect.fromCenter(center: fillColorPickerCursor + Offset(0, _controlPointSize), width: _controlPointSize / 2, height: _controlPointSize));
+                                cursor.addRect(Rect.fromCenter(center: fillColorPickerCursor - Offset(_controlPointSize, 0), width: _controlPointSize, height: _controlPointSize / 2));
+                                cursor.addRect(Rect.fromCenter(center: fillColorPickerCursor + Offset(_controlPointSize, 0), width: _controlPointSize, height: _controlPointSize / 2));
+                              }
+                              canvas.drawPath(cursor, fillPaint);
+                            },
+                            shouldRedraw: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 3.0, vertical:3.0),
+                    width: 262,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Radio(value: AnchorColor.red, groupValue: colorReceiver == "Stroke" ? strokeAnchorColor : fillAnchorColor, onChanged: (AnchorColor? val){
+                                    if(colorReceiver == "Stroke"){
+                                      setState((){
+                                        strokeAnchorColor = val ?? strokeAnchorColor;
+                                        strokeAnchorColorValue = strokeAnchorColor == AnchorColor.red ? strokeRedInt : (strokeAnchorColor == AnchorColor.green ? strokeGreenInt : strokeBlueInt);
+                                      });
+                                    } else if (colorReceiver == "Fill"){
+                                      setState((){
+                                        fillAnchorColor = val ?? fillAnchorColor;
+                                        fillAnchorColorValue = fillAnchorColor == AnchorColor.red ? fillRedInt : (fillAnchorColor == AnchorColor.green ? fillGreenInt : fillBlueInt);
+                                      });
+                                    }
+                                  }),
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(horizontal:8),
+                                      width: 60,
+                                      child: const Text("Red: ")
+                                  ),
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      width: 42,
+                                      child: colorReceiver == "Stroke" ? Text("$strokeRedInt",) : Text("$fillRedInt",)
+                                  ),
+                                  PlusMinusButton(
+                                    incrementCall: (dt){
+                                      if(colorReceiver == "Stroke" && strokeRedInt < 255){setState((){strokeRedInt++;});}
+                                      if(colorReceiver == "Fill" && fillRedInt < 255){setState((){fillRedInt++;});}
+                                    },
+                                    longIncrementCall:(){
+                                      startChangeColorValues(AnchorColor.red, true, colorReceiver);
+                                    },
+                                    longIncrementCallEnd:(){setState((){colorChangeTimer.cancel();});},
+                                    decrementCall: (dt){
+                                      if(colorReceiver == "Stroke" && strokeRedInt > 0){setState((){strokeRedInt--;});}
+                                      if(colorReceiver == "Fill" && fillRedInt > 0){setState((){fillRedInt--;});}
+                                    },
+                                    longDecrementCall:(){
+                                      startChangeColorValues(AnchorColor.red, false, colorReceiver);
+                                    },
+                                    longDecrementCallEnd:(){setState((){colorChangeTimer.cancel();});},
+                                  ),
+                                ]
+                            ),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Radio(value: AnchorColor.green, groupValue: colorReceiver == "Stroke" ? strokeAnchorColor : fillAnchorColor, onChanged: (AnchorColor? val){
+                                    if(colorReceiver == "Stroke"){
+                                      setState((){
+                                        strokeAnchorColor = val ?? strokeAnchorColor;
+                                        strokeAnchorColorValue = strokeAnchorColor == AnchorColor.red ? strokeRedInt : (strokeAnchorColor == AnchorColor.green ? strokeGreenInt : strokeBlueInt);
+                                      });
+                                    } else if (colorReceiver == "Fill"){
+                                      setState((){
+                                        fillAnchorColor = val ?? fillAnchorColor;
+                                        fillAnchorColorValue = fillAnchorColor == AnchorColor.red ? fillRedInt : (fillAnchorColor == AnchorColor.green ? fillGreenInt : fillBlueInt);
+                                      });
+                                    }
+                                  }),
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(horizontal:8),
+                                      width: 60,
+                                      child: const Text("Green: ")
+                                  ),
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      width: 42,
+                                      child: colorReceiver == "Stroke" ? Text("$strokeGreenInt",) : Text("$fillGreenInt",)
+                                  ),
+                                  PlusMinusButton(
+                                    incrementCall: (dt){
+                                      if(colorReceiver == "Stroke" && strokeGreenInt < 255){setState((){strokeGreenInt++;});}
+                                      if(colorReceiver == "Fill" && fillGreenInt < 255){setState((){fillGreenInt++;});}
+                                    },
+                                    longIncrementCall:(){
+                                      startChangeColorValues(AnchorColor.green, true, colorReceiver);
+                                    },
+                                    longIncrementCallEnd:(){setState((){colorChangeTimer.cancel();});},
+                                    decrementCall: (dt){
+                                      if(colorReceiver == "Stroke" && strokeGreenInt > 0){setState((){strokeGreenInt--;});}
+                                      if(colorReceiver == "Fill" && fillGreenInt > 0){setState((){fillGreenInt--;});}
+                                    },
+                                    longDecrementCall:(){
+                                      startChangeColorValues(AnchorColor.green, false, colorReceiver);
+                                    },
+                                    longDecrementCallEnd:(){setState((){colorChangeTimer.cancel();});},
+                                  ),
+                                ]
+                            ),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Radio(value: AnchorColor.blue, groupValue: colorReceiver == "Stroke" ? strokeAnchorColor : fillAnchorColor, onChanged: (AnchorColor? val){
+                                    if(colorReceiver == "Stroke"){
+                                      setState((){
+                                        strokeAnchorColor = val ?? strokeAnchorColor;
+                                        strokeAnchorColorValue = strokeAnchorColor == AnchorColor.red ? strokeRedInt : (strokeAnchorColor == AnchorColor.green ? strokeGreenInt : strokeBlueInt);
+                                      });
+                                    } else if (colorReceiver == "Fill"){
+                                      setState((){
+                                        fillAnchorColor = val ?? fillAnchorColor;
+                                        fillAnchorColorValue = fillAnchorColor == AnchorColor.red ? fillRedInt : (fillAnchorColor == AnchorColor.green ? fillGreenInt : fillBlueInt);
+                                      });
+                                    }
+                                  }),
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(horizontal:8),
+                                      width: 60,
+                                      child: const Text("Blue: ")
+                                  ),
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      width: 42,
+                                      child: colorReceiver == "Stroke" ? Text("$strokeBlueInt",) : Text("$fillBlueInt",)
+                                  ),
+                                  PlusMinusButton(
+                                    incrementCall: (dt){
+                                      if(colorReceiver == "Stroke" && strokeBlueInt < 255){setState((){strokeBlueInt++;});}
+                                      if(colorReceiver == "Fill" && fillBlueInt < 255){setState((){fillBlueInt++;});}
+                                    },
+                                    longIncrementCall:(){
+                                      startChangeColorValues(AnchorColor.blue, true, colorReceiver);
+                                    },
+                                    longIncrementCallEnd:(){setState((){colorChangeTimer.cancel();});},
+                                    decrementCall: (dt){
+                                      if(colorReceiver == "Stroke" && strokeBlueInt > 0){setState((){strokeBlueInt--;});}
+                                      if(colorReceiver == "Fill" && fillBlueInt > 0){setState((){fillBlueInt--;});}
+                                    },
+                                    longDecrementCall:(){
+                                      startChangeColorValues(AnchorColor.blue, false, colorReceiver);
+                                    },
+                                    longDecrementCallEnd:(){setState((){colorChangeTimer.cancel();});},
+                                  ),
+                                ]
+                            ),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                      width:32,
+                                      height:30
+                                  ),
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(horizontal:8),
+                                      width: 60,
+                                      child: const Text("Alpha: ")
+                                  ),
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      width: 42,
+                                      child: colorReceiver == "Stroke" ? Text("$strokeAlphaInt",) : Text("$fillAlphaInt",)
+                                  ),
+                                  PlusMinusButton(
+                                    incrementCall: (dt){
+                                      if(colorReceiver == "Stroke" && strokeAlphaInt < 255){setState((){strokeAlphaInt++;});}
+                                      if(colorReceiver == "Fill" && fillAlphaInt < 255){setState((){fillAlphaInt++;});}
+                                    },
+                                    longIncrementCall:(){
+                                      startChangeColorValues(AnchorColor.alpha, true, colorReceiver);
+                                    },
+                                    longIncrementCallEnd:(){setState((){colorChangeTimer.cancel();});},
+                                    decrementCall: (dt){
+                                      if(colorReceiver == "Stroke" && strokeAlphaInt > 0){setState((){strokeAlphaInt--;});}
+                                      if(colorReceiver == "Fill" && fillAlphaInt > 0){setState((){fillAlphaInt--;});}
+                                    },
+                                    longDecrementCall:(){
+                                      startChangeColorValues(AnchorColor.alpha, false, colorReceiver);
+                                    },
+                                    longDecrementCallEnd:(){setState((){colorChangeTimer.cancel();});},
+                                  ),
+                                ]
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            SizedBox(
+                                width: 50,
+                                height: 50,
+                                child: Material(
+                                    shape: const CircleBorder(),
+                                    color: colorReceiver == "Stroke" ? strokePendingColor : fillPendingColor,
+                                )
+                            ),
+                            Container(
+                                height: 32,
+                                margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                                child: MaterialButton(
+                                    onPressed:(){
+                                      if(colorReceiver == "Stroke"){
+                                        if(actionStack.isEmpty || !(actionStack.last).containsKey(DrawAction.changePaintColor)){
+                                          actionStack.add({
+                                            DrawAction.changePaintColor: {
+                                              "original_paint_color": currentStrokeColor.color,
+                                              "editing_curve_index": currentEditingCurveIndex,
+                                            }
+                                          });
+                                          if(currentEditingCurveIndex != null){
+                                            actionStack.last[DrawAction.changePaintColor]["original_curve_paint_color"] = pathsCollection[currentEditingCurveIndex!]["stroke"].color;
+                                          }
+                                        }
+                                        setState((){
+                                          currentStrokeColor.color = strokePendingColor;
+                                          if(currentEditingCurveIndex != null){
+                                            pathsCollection[currentEditingCurveIndex!]["stroke"].color = strokePendingColor;
+                                          }
+                                          showColorSelector = false;
+                                          colorReceiver = "";
+                                        });
+                                      } else if (colorReceiver == "Fill"){
+                                        actionStack.add({
+                                          DrawAction.changeFillColor: {
+                                            "original_fill_color": currentFillColor.color,
+                                            "editing_curve_index": currentEditingCurveIndex,
+                                          }
+                                        });
+                                        if(currentEditingCurveIndex != null){
+                                          actionStack.last[DrawAction.changeFillColor]["original_curve_fill_color"] = pathsCollection[currentEditingCurveIndex!]["fill"].color;
+                                          actionStack.last[DrawAction.changeFillColor]["original_filled_attribute"] = pathsCollection[currentEditingCurveIndex!]["filled"];
+                                        }
+                                        setState((){
+                                          currentFillColor.color = fillPendingColor;
+                                          if(currentEditingCurveIndex != null){
+                                            pathsCollection[currentEditingCurveIndex!]["fill"].color = strokePendingColor;
+                                            pathsCollection[currentEditingCurveIndex!]["filled"] = true;
+                                          }
+                                          showColorSelector = false;
+                                        });
+                                      }
+                                    },
+                                    color: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6.0)
+                                    ),
+                                    elevation: 10.0,
+                                    padding: EdgeInsets.zero,
+                                    child: const Text("Pick color", style: TextStyle(fontSize:16, color: Colors.white))
+                                )
+                            ),
+                          ],
+                        )
+                      ],
+                    )
+                ),
               ]
           )
       ),

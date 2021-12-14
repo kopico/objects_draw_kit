@@ -23,7 +23,7 @@ Color cyan = Color.fromARGB(255, 64, 255, 255);
 Color magenta = Color.fromARGB(255, 255, 64, 224);
 Color brown = Color.fromARGB(255, 160, 64, 64);
 
-enum AnchorColor{red, green, blue}
+enum AnchorColor{red, green, blue, alpha}
 
 class CircularColorPalette extends StatelessWidget {
   final double paletteWidth;
@@ -123,13 +123,9 @@ class ThreeDimColorPalette extends StatelessWidget {
       width: paletteWidth,
       height: paletteHeight,
       child: Material(
-        shape: const ContinuousRectangleBorder(
-            side: BorderSide(width:1, color: Colors.black)
-        ),
         child: CustomPaint(
             painter: FastDraw(
               drawer: (Canvas canvas, Size size){
-                print("Palette size: $size");
                 switch(anchorColor){
                   case AnchorColor.red:
                     for(int i = 0; i < 256; i++){
